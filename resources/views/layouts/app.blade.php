@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitter Clone</title>
+    <title>Yappr</title>
 
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
@@ -33,7 +33,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>&copy; {{ date('Y') }} Twitter Clone. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} Yappr. All rights reserved.</p>
         </footer>
     </div>
 

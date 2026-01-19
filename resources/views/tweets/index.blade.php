@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h2 class="feed-title">Tweets Feed</h2>
+    <h2 class="feed-title">Yap Feed</h2>
 
     @auth
     <div class="card mb-6">
@@ -92,7 +92,7 @@
             </div>
         </div>
     @empty
-        <p class="no-tweets">No tweets yet. Be the first to post!</p>
+        <p class="no-tweets">No yaps yet. Be the first to post!</p>
     @endforelse
 </div>
 @endsection
