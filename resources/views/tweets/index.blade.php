@@ -215,6 +215,11 @@
             @endif
 
             <div class="tweet-actions">
+                <!-- Comment Count and Link -->
+                <a href="{{ route('tweets.show', $tweet->id) }}" class="btn-link" style="text-decoration: none; color: #666;">
+                    💬 {{ $tweet->comments()->count() }} {{ $tweet->comments()->count() == 1 ? 'Comment' : 'Comments' }}
+                </a>
+
                 @auth
                     @if(auth()->id() === $tweet->user_id)
                         <a href="{{ route('tweets.edit', $tweet->id) }}" class="btn-link">Edit</a>

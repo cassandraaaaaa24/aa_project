@@ -45,4 +45,12 @@ class Tweet extends Model
         return $this->belongsToMany(Tag::class, 'tweet_tags')
                     ->withTimestamps();
     }
+
+    /**
+     * Comments on this tweet.
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)->orderBy('created_at', 'desc');
+    }
 }

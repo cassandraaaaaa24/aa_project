@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\TweetController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CommentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,3 +120,13 @@ Route::post('/users/{id}/follow', [UserController::class, 'follow'])
 Route::post('/users/{id}/unfollow', [UserController::class, 'unfollow'])
     ->middleware('auth')
     ->name('users.unfollow');
+
+// Comment routes
+Route::post('/tweets/{tweet}/comments', [CommentController::class, 'store'])
+    ->middleware('auth')
+    ->name('comments.store');
+
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('comments.destroy');
+    
