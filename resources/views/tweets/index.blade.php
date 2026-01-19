@@ -4,6 +4,42 @@
 <div class="container">
     <h2 class="feed-title">Yap Feed</h2>
 
+    <!-- Feed Type Tabs -->
+    @auth
+    <div class="feed-tabs" style="margin-bottom: 20px; display: flex; gap: 0; border-bottom: 2px solid #dee2e6;">
+        <a href="{{ route('tweets.index', array_merge(request()->except('feed'), ['feed' => 'all'])) }}" 
+           class="feed-tab {{ request('feed', 'all') == 'all' ? 'active' : '' }}"
+           style="padding: 12px 24px; text-decoration: none; color: {{ request('feed', 'all') == 'all' ? '#007bff' : '#6c757d' }}; border-bottom: 3px solid {{ request('feed', 'all') == 'all' ? '#007bff' : 'transparent' }}; font-weight: {{ request('feed', 'all') == 'all' ? '600' : 'normal' }}; transition: all 0.3s ease; display: inline-block;">
+            📰 All Yaps
+        </a>
+        <a href="{{ route('tweets.index', array_merge(request()->except('feed'), ['feed' => 'following'])) }}" 
+           class="feed-tab {{ request('feed') == 'following' ? 'active' : '' }}"
+           style="padding: 12px 24px; text-decoration: none; color: {{ request('feed') == 'following' ? '#007bff' : '#6c757d' }}; border-bottom: 3px solid {{ request('feed') == 'following' ? '#007bff' : 'transparent' }}; font-weight: {{ request('feed') == 'following' ? '600' : 'normal' }}; transition: all 0.3s ease; display: inline-block;">
+            👥 Following 
+            @if(isset($followingCount))
+                ({{ $followingCount }})
+            @endif
+        </a>
+    </div>
+    @endauth
+
+    <!-- Message for Following Feed when not following anyone -->
+    @if(request('feed') == 'following' && Auth::check())
+        @php
+            $actualFollowingCount = isset($followingCount) ? $followingCount : 0;
+        @endphp
+        @if($actualFollowingCount == 0)
+            <div class="card" style="background-color: #fff3cd; border: 1px solid #ffc107; padding: 20px; margin-bottom: 20px; border-radius: 8px;">
+                <h4 style="margin: 0 0 10px 0; color: #856404; font-size: 16px;">
+                    ⚠️ You're not following anyone yet!
+                </h4>
+                <p style="margin: 0; color: #856404; font-size: 14px;">
+                    Start following users to see their posts in this feed. Visit user profiles and click the <strong>"+ Follow"</strong> button to build your personalized feed.
+                </p>
+            </div>
+        @endif
+    @endif
+
     <!-- Search and Filter Section -->
     <div class="card mb-4" style="background-color: #f8f9fa; padding: 20px;">
         <h3 style="margin-bottom: 15px; font-size: 18px; font-weight: bold;">Search & Filter</h3>
@@ -242,9 +278,44 @@
         cursor: pointer;
     }
 
+    /* Feed Tabs Styling */
+    .feed-tabs {
+        background-color: white;
+        border-radius: 8px 8px 0 0;
+        overflow: hidden;
+    }
+
+    .feed-tab {
+        position: relative;
+        background-color: transparent;
+    }
+
+    .feed-tab:hover {
+        background-color: #f8f9fa;
+        color: #007bff !important;
+    }
+
+    .feed-tab.active {
+        background-color: #f8f9fa;
+    }
+
     @media (max-width: 768px) {
         .card > form > div[style*="grid"] {
             grid-template-columns: 1fr !important;
+        }
+        
+        .feed-tabs {
+            flex-direction: column;
+        }
+        
+        .feed-tab {
+            text-align: center;
+            border-bottom: 1px solid #dee2e6 !important;
+        }
+        
+        .feed-tab.active {
+            border-left: 4px solid #007bff !important;
+            border-bottom: 1px solid #dee2e6 !important;
         }
     }
 </style>

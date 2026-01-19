@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+use Illuminate\Support\Facades\DB;
+@endphp
+
 <div class="card profile-card">
     <!-- Profile Picture -->
     @if($user->profile_picture)
@@ -22,10 +26,41 @@
     
     <p class="profile-joined">Joined: {{ $user->created_at->format('F j, Y') }}</p>
 
-    <!-- Edit Button (only for own profile) -->
+    <!-- Edit Button or Follow Button -->
     @auth
         @if(auth()->id() === $user->id)
+            <!-- Edit Profile Button (for own profile) -->
             <a href="{{ route('profile.edit') }}" class="btn btn-primary" style="margin: 10px 0;">Edit Profile</a>
+        @else
+            <!-- Follow/Unfollow Button (for other users) -->
+            @php
+                // Check if following using database query to avoid method error
+                $isFollowing = false;
+                try {
+                    $isFollowing = DB::table('follows')
+                        ->where('follower_id', auth()->id())
+                        ->where('following_id', $user->id)
+                        ->exists();
+                } catch (\Exception $e) {
+                    // follows table doesn't exist yet
+                }
+            @endphp
+
+            @if($isFollowing)
+                <form action="{{ route('users.unfollow', $user->id) }}" method="POST" style="display: inline-block; margin: 10px 0;">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                        ✓ Following
+                    </button>
+                </form>
+            @else
+                <form action="{{ route('users.follow', $user->id) }}" method="POST" style="display: inline-block; margin: 10px 0;">
+                    @csrf
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                        + Follow
+                    </button>
+                </form>
+            @endif
         @endif
     @endauth
         
@@ -33,6 +68,19 @@
     <div class="profile-stats">
         <span>Total Yaps: {{ $user->tweets->count() }}</span>
         <span>Total Likes: {{ $user->tweets->sum('likes_count') }}</span>
+        @php
+            // Get follower/following counts safely
+            $followersCount = 0;
+            $followingCount = 0;
+            try {
+                $followersCount = DB::table('follows')->where('following_id', $user->id)->count();
+                $followingCount = DB::table('follows')->where('follower_id', $user->id)->count();
+            } catch (\Exception $e) {
+                // follows table doesn't exist yet
+            }
+        @endphp
+        <span>Followers: {{ $followersCount }}</span>
+        <span>Following: {{ $followingCount }}</span>
     </div>
 </div>
 
@@ -217,6 +265,33 @@
 
     .tweet-card {
         margin-bottom: 20px;
+    }
+
+    /* Follow Button Styles */
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
     }
 
     @media (max-width: 768px) {

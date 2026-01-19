@@ -153,14 +153,18 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'You must be logged in to follow users.');
         }
 
-        $user = Auth::user();
+        $currentUser = Auth::user();
         
-        if ($user->id == $id) {
+        if ($currentUser->id == $id) {
             return redirect()->back()->with('error', 'You cannot follow yourself.');
         }
 
-        if ($user->follow($id)) {
-            return redirect()->back()->with('success', 'You are now following this user!');
+        // Check if user exists
+        $userToFollow = User::findOrFail($id);
+
+        // Use the User model's follow method
+        if ($currentUser->follow($id)) {
+            return redirect()->back()->with('success', 'You are now following ' . $userToFollow->name . '!');
         }
 
         return redirect()->back()->with('info', 'You are already following this user.');
@@ -175,10 +179,12 @@ class UserController extends Controller
             return redirect()->back()->with('error', 'You must be logged in.');
         }
 
-        $user = Auth::user();
+        $currentUser = Auth::user();
+        $userToUnfollow = User::findOrFail($id);
 
-        if ($user->unfollow($id)) {
-            return redirect()->back()->with('success', 'You have unfollowed this user.');
+        // Use the User model's unfollow method
+        if ($currentUser->unfollow($id)) {
+            return redirect()->back()->with('success', 'You have unfollowed ' . $userToUnfollow->name . '.');
         }
 
         return redirect()->back()->with('info', 'You are not following this user.');

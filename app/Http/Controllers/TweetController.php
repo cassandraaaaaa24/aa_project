@@ -8,6 +8,7 @@ use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class TweetController extends Controller
 {
@@ -32,13 +33,22 @@ class TweetController extends Controller
         $feedType = $request->input('feed', 'all'); // Default to 'all'
         if ($feedType === 'following' && Auth::check()) {
             // Get IDs of users that the current user is following
-            $followingIds = Auth::user()->following()->pluck('users.id')->toArray();
-            
-            if (count($followingIds) > 0) {
-                $query->whereIn('user_id', $followingIds);
-            } else {
-                // If not following anyone, show no tweets
-                $query->whereRaw('1 = 0');
+            // Check if follows table exists first
+            try {
+                $followingIds = DB::table('follows')
+                    ->where('follower_id', Auth::id())
+                    ->pluck('following_id')
+                    ->toArray();
+                
+                if (count($followingIds) > 0) {
+                    $query->whereIn('user_id', $followingIds);
+                } else {
+                    // If not following anyone, show no tweets
+                    $query->whereRaw('1 = 0');
+                }
+            } catch (\Exception $e) {
+                // If follows table doesn't exist, show all tweets
+                // User should run migration first
             }
         }
 
@@ -82,7 +92,17 @@ class TweetController extends Controller
         $allUsers = User::select('id', 'name')->orderBy('name')->get();
 
         // Get following count for the current user
-        $followingCount = Auth::check() ? Auth::user()->following()->count() : 0;
+        $followingCount = 0;
+        if (Auth::check()) {
+            try {
+                $followingCount = DB::table('follows')
+                    ->where('follower_id', Auth::id())
+                    ->count();
+            } catch (\Exception $e) {
+                // follows table doesn't exist yet
+                $followingCount = 0;
+            }
+        }
 
         return view('tweets.index', compact('tweets', 'allTags', 'allUsers', 'followingCount'));
     }

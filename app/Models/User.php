@@ -62,4 +62,60 @@ class User extends Authenticatable
         return $this->belongsToMany(Tweet::class, 'tweet_user_likes')
                     ->withTimestamps();
     }
+
+    /**
+     * Users that this user is following.
+     */
+    public function following()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'follower_id', 'following_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Users that are following this user.
+     */
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'following_id', 'follower_id')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Check if this user is following another user.
+     */
+    public function isFollowing($userId)
+    {
+        return $this->following()->where('following_id', $userId)->exists();
+    }
+
+    /**
+     * Follow a user.
+     */
+    public function follow($userId)
+    {
+        if ($this->id === $userId) {
+            return false; // Can't follow yourself
+        }
+
+        if (!$this->isFollowing($userId)) {
+            $this->following()->attach($userId);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Unfollow a user.
+     */
+    public function unfollow($userId)
+    {
+        if ($this->isFollowing($userId)) {
+            $this->following()->detach($userId);
+            return true;
+        }
+
+        return false;
+    }
 }
