@@ -2,29 +2,52 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'profile_picture',
         'bio',
+        'profile_picture',
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
     /**
-     * Tweets authored by this user.
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    /**
+     * Get the tweets for the user.
      */
     public function tweets()
     {
@@ -32,12 +55,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Tweets this user has liked.
+     * Get the tweets this user has liked.
      */
     public function likedTweets()
     {
         return $this->belongsToMany(Tweet::class, 'tweet_user_likes')
                     ->withTimestamps();
     }
-    
 }

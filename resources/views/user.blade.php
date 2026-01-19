@@ -5,8 +5,10 @@
     <!-- Profile Picture -->
     @if($user->profile_picture)
         <div style="text-align: center; margin-bottom: 20px;">
-            <img src="{{ Storage::url($user->profile_picture) }}" alt="Profile" 
-                 style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;">
+            <img src="{{ asset('storage/' . $user->profile_picture) }}" 
+                 alt="Profile" 
+                 style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover;"
+                 onerror="this.style.display='none';">
         </div>
     @endif
 
@@ -44,7 +46,10 @@
             
             @if($tweet->image)
                 <div style="margin: 10px 0;">
-                    <img src="{{ Storage::url($tweet->image) }}" alt="Tweet image" style="max-width: 100%; border-radius: 8px;">
+                    <img src="{{ asset('storage/' . $tweet->image) }}" 
+                         alt="Tweet image" 
+                         style="max-width: 100%; border-radius: 8px;"
+                         onerror="this.style.display='none';">
                 </div>
             @endif
 

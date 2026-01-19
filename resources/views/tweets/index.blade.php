@@ -28,7 +28,10 @@
             <div class="tweet-header">
                 <a href="{{ route('users.show', $tweet->user->id) }}" class="tweet-user">
                     @if($tweet->user->profile_picture)
-                        <img src="{{ Storage::url($tweet->user->profile_picture) }}" alt="Profile" style="width: 40px; height: 40px; border-radius: 50%; display: inline-block; margin-right: 10px;">
+                        <img src="{{ asset('storage/' . $tweet->user->profile_picture) }}" 
+                             alt="Profile" 
+                             style="width: 40px; height: 40px; border-radius: 50%; display: inline-block; margin-right: 10px; object-fit: cover;"
+                             onerror="this.style.display='none';">
                     @endif
                     {{ $tweet->user->name ?? 'Unknown User' }}
                 </a>
@@ -38,7 +41,11 @@
 
             @if($tweet->image)
                 <div style="margin: 10px 0;">
-                    <img src="{{ Storage::url($tweet->image) }}" alt="Tweet image" style="max-width: 100%; border-radius: 8px;">
+                    <img src="{{ asset('storage/' . $tweet->image) }}" 
+                         alt="Tweet image" 
+                         style="max-width: 100%; border-radius: 8px; display: block;"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                    <p style="display: none; color: #666; font-size: 12px;">Image could not be loaded: {{ $tweet->image }}</p>
                 </div>
             @endif
 

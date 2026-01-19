@@ -11,7 +11,7 @@
     <div class="page">
         <!-- Navigation Bar -->
         <nav class="navbar">
-            <a href="{{ url('/') }}" class="brand">Twitter Clone</a>
+            <a href="{{ url('/') }}" class="brand">Yappr</a>
             <div class="nav-links">
                 @auth
                     <span class="welcome">Hello, {{ Auth::user()->name }}</span>

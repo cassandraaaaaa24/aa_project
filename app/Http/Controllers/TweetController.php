@@ -23,8 +23,8 @@ class TweetController extends Controller
      */
     public function index()
     {
-        $tweets = Tweet::with('user')
-            ->select('id', 'user_id', 'content', 'likes_count', 'created_at', 'updated_at')
+        $tweets = Tweet::with(['user', 'tags', 'likes'])
+            ->select('id', 'user_id', 'content', 'likes_count', 'image', 'created_at', 'updated_at')
             ->latest()
             ->get();
 
@@ -36,8 +36,8 @@ class TweetController extends Controller
      */
     public function show($id)
     {
-        $tweet = Tweet::with('user')
-            ->select('id', 'user_id', 'content', 'likes_count', 'created_at', 'updated_at')
+        $tweet = Tweet::with(['user', 'tags', 'likes'])
+            ->select('id', 'user_id', 'content', 'likes_count', 'image', 'created_at', 'updated_at')
             ->findOrFail($id);
 
         return view('tweets.show', compact('tweet'));
@@ -64,15 +64,34 @@ class TweetController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        // Validate without MIME type checking if fileinfo extension is not available
+        $rules = [
             'content' => 'required|string|max:280',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'tags' => 'nullable|string',
-        ]);
+        ];
+
+        // Only add image validation if file is present
+        if ($request->hasFile('image')) {
+            $rules['image'] = 'file|max:2048';
+        }
+
+        $validated = $request->validate($rules);
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('tweets', 'public');
+            $file = $request->file('image');
+            
+            // Manual validation for image types
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
+            
+            if (!in_array($extension, $allowedExtensions)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Invalid image format. Allowed: JPEG, PNG, GIF, WEBP');
+            }
+            
+            $imagePath = $file->store('tweets', 'public');
         }
 
         $tweet = Tweet::create([
@@ -106,11 +125,18 @@ class TweetController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
+        // Validate without MIME type checking if fileinfo extension is not available
+        $rules = [
             'content' => 'required|string|max:280',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'tags' => 'nullable|string',
-        ]);
+        ];
+
+        // Only add image validation if file is present
+        if ($request->hasFile('image')) {
+            $rules['image'] = 'file|max:2048';
+        }
+
+        $validated = $request->validate($rules);
 
         $tweet = Tweet::findOrFail($id);
 
@@ -123,10 +149,22 @@ class TweetController extends Controller
 
         // Handle image update
         if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            
+            // Manual validation for image types
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'webp'];
+            
+            if (!in_array($extension, $allowedExtensions)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Invalid image format. Allowed: JPEG, PNG, GIF, WEBP');
+            }
+            
             if ($tweet->image) {
                 Storage::disk('public')->delete($tweet->image);
             }
-            $tweet->image = $request->file('image')->store('tweets', 'public');
+            $tweet->image = $file->store('tweets', 'public');
         }
 
         $tweet->save();
