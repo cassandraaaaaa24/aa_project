@@ -13,6 +13,7 @@ class Tweet extends Model
         'user_id',
         'content',
         'likes_count',
+        'image',
     ];
 
     protected $casts = [
@@ -33,6 +34,15 @@ class Tweet extends Model
     public function likes()
     {
         return $this->belongsToMany(User::class, 'tweet_user_likes')
+                    ->withTimestamps();
+    }
+
+    /**
+     * Tags associated with this tweet.
+     */
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'tweet_tags')
                     ->withTimestamps();
     }
 }

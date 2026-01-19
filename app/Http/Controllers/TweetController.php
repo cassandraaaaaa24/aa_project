@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Tweet;
+use App\Models\Tag;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class TweetController extends Controller
 {
@@ -64,13 +66,36 @@ class TweetController extends Controller
     {
         $validated = $request->validate([
             'content' => 'required|string|max:280',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'tags' => 'nullable|string',
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('tweets', 'public');
+        }
 
         $tweet = Tweet::create([
             'user_id' => Auth::id(),
             'content' => $validated['content'],
+            'image' => $imagePath,
             'likes_count' => 0,
         ]);
+
+        // Handle tags
+        if (!empty($validated['tags'])) {
+            $tagNames = array_map('trim', explode(',', $validated['tags']));
+            $tagIds = [];
+            foreach ($tagNames as $tagName) {
+                if (!empty($tagName)) {
+                    $tag = Tag::firstOrCreate(['name' => $tagName]);
+                    $tagIds[] = $tag->id;
+                }
+            }
+            if (!empty($tagIds)) {
+                $tweet->tags()->attach($tagIds);
+            }
+        }
 
         return redirect()->route('tweets.index')
             ->with('success', 'Tweet posted successfully!');
@@ -83,6 +108,8 @@ class TweetController extends Controller
     {
         $validated = $request->validate([
             'content' => 'required|string|max:280',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'tags' => 'nullable|string',
         ]);
 
         $tweet = Tweet::findOrFail($id);
@@ -92,7 +119,33 @@ class TweetController extends Controller
                 ->with('error', 'Unauthorized. You can only update your own tweets.');
         }
 
-        $tweet->update($validated);
+        $tweet->content = $validated['content'];
+
+        // Handle image update
+        if ($request->hasFile('image')) {
+            if ($tweet->image) {
+                Storage::disk('public')->delete($tweet->image);
+            }
+            $tweet->image = $request->file('image')->store('tweets', 'public');
+        }
+
+        $tweet->save();
+
+        // Handle tags update
+        $tweet->tags()->detach();
+        if (!empty($validated['tags'])) {
+            $tagNames = array_map('trim', explode(',', $validated['tags']));
+            $tagIds = [];
+            foreach ($tagNames as $tagName) {
+                if (!empty($tagName)) {
+                    $tag = Tag::firstOrCreate(['name' => $tagName]);
+                    $tagIds[] = $tag->id;
+                }
+            }
+            if (!empty($tagIds)) {
+                $tweet->tags()->attach($tagIds);
+            }
+        }
 
         return redirect()->route('tweets.index')
             ->with('success', 'Tweet updated successfully!');
