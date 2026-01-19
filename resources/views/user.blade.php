@@ -31,7 +31,7 @@
 
     <!-- Stats -->
     <div class="profile-stats">
-        <span>Total Tweets: {{ $user->tweets->count() }}</span>
+        <span>Total Yaps: {{ $user->tweets->count() }}</span>
         <span>Total Likes: {{ $user->tweets->sum('likes_count') }}</span>
     </div>
 </div>
@@ -47,7 +47,7 @@
             @if($tweet->image)
                 <div style="margin: 10px 0;">
                     <img src="{{ asset('storage/' . $tweet->image) }}" 
-                         alt="Tweet image" 
+                         alt="Yap image" 
                          style="max-width: 100%; border-radius: 8px;"
                          onerror="this.style.display='none';">
                 </div>
@@ -69,7 +69,7 @@
             </div>
         </div>
     @empty
-        <p>No tweets yet.</p>
+        <p>No yaps yet.</p>
     @endforelse
 </div>
 @endsection
