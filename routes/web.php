@@ -110,3 +110,12 @@ Route::get('/users/{id}', [UserController::class, 'show'])->name('users.show');
 // Edit profile routes (authenticated only)
 Route::get('/profile/edit', [UserController::class, 'editProfile'])->middleware('auth')->name('profile.edit');
 Route::post('/profile/update', [UserController::class, 'updateProfile'])->middleware('auth')->name('profile.update');
+
+// Follow funtions
+Route::post('/users/{id}/follow', [UserController::class, 'follow'])
+    ->middleware('auth')
+    ->name('users.follow');
+
+Route::post('/users/{id}/unfollow', [UserController::class, 'unfollow'])
+    ->middleware('auth')
+    ->name('users.unfollow');

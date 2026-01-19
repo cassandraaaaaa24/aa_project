@@ -143,4 +143,44 @@ class UserController extends Controller
         return redirect()->route('users.show', $user->id)
             ->with('success', 'Profile updated successfully!');
     }
+
+    /**
+     * Follow a user.
+     */
+    public function follow($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->back()->with('error', 'You must be logged in to follow users.');
+        }
+
+        $user = Auth::user();
+        
+        if ($user->id == $id) {
+            return redirect()->back()->with('error', 'You cannot follow yourself.');
+        }
+
+        if ($user->follow($id)) {
+            return redirect()->back()->with('success', 'You are now following this user!');
+        }
+
+        return redirect()->back()->with('info', 'You are already following this user.');
+    }
+
+    /**
+     * Unfollow a user.
+     */
+    public function unfollow($id)
+    {
+        if (!Auth::check()) {
+            return redirect()->back()->with('error', 'You must be logged in.');
+        }
+
+        $user = Auth::user();
+
+        if ($user->unfollow($id)) {
+            return redirect()->back()->with('success', 'You have unfollowed this user.');
+        }
+
+        return redirect()->back()->with('info', 'You are not following this user.');
+    }
 }

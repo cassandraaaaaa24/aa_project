@@ -28,6 +28,20 @@ class TweetController extends Controller
         $query = Tweet::with(['user', 'tags', 'likes'])
             ->select('id', 'user_id', 'content', 'likes_count', 'image', 'created_at', 'updated_at');
 
+        // Filter by feed type (all or following)
+        $feedType = $request->input('feed', 'all'); // Default to 'all'
+        if ($feedType === 'following' && Auth::check()) {
+            // Get IDs of users that the current user is following
+            $followingIds = Auth::user()->following()->pluck('users.id')->toArray();
+            
+            if (count($followingIds) > 0) {
+                $query->whereIn('user_id', $followingIds);
+            } else {
+                // If not following anyone, show no tweets
+                $query->whereRaw('1 = 0');
+            }
+        }
+
         // Search by content
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -67,7 +81,10 @@ class TweetController extends Controller
         // Get all users for author search suggestions
         $allUsers = User::select('id', 'name')->orderBy('name')->get();
 
-        return view('tweets.index', compact('tweets', 'allTags', 'allUsers'));
+        // Get following count for the current user
+        $followingCount = Auth::check() ? Auth::user()->following()->count() : 0;
+
+        return view('tweets.index', compact('tweets', 'allTags', 'allUsers', 'followingCount'));
     }
 
     /**
