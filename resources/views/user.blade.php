@@ -28,7 +28,7 @@
             <a href="{{ route('profile.edit') }}" class="btn btn-primary" style="margin: 10px 0;">Edit Profile</a>
         @endif
     @endauth
-
+        
     <!-- Stats -->
     <div class="profile-stats">
         <span>Total Yaps: {{ $user->tweets->count() }}</span>
@@ -36,14 +36,116 @@
     </div>
 </div>
 
-<!-- User Tweets -->
+<!-- User Tweets Section -->
 <div class="tweets-list">
-    <h3>{{ $user->name }}'s Tweets</h3>
+    <h3>{{ $user->name }}'s Yaps</h3>
 
-    @forelse($user->tweets as $tweet)
+    <!-- Filter and Sort Section -->
+    @if($user->tweets->count() > 0)
+        <div class="card mb-4" style="background-color: #f8f9fa; padding: 15px;">
+            <form method="GET" action="{{ route('users.show', $user->id) }}">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    
+                    <!-- Filter by Tag -->
+                    <div>
+                        <label for="tag" style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">
+                            Filter by Tag
+                        </label>
+                        <select id="tag" name="tag" class="input-field">
+                            <option value="">All Tags</option>
+                            @foreach($userTags as $tag)
+                                <option value="{{ $tag->name }}" {{ request('tag') == $tag->name ? 'selected' : '' }}>
+                                    #{{ $tag->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <!-- Sort Options -->
+                    <div>
+                        <label for="sort" style="display: block; margin-bottom: 5px; font-weight: 600; font-size: 14px;">
+                            Sort By
+                        </label>
+                        <select id="sort" name="sort" class="input-field">
+                            <option value="date_desc" {{ request('sort', 'date_desc') == 'date_desc' ? 'selected' : '' }}>
+                                Date: Newest First
+                            </option>
+                            <option value="date_asc" {{ request('sort') == 'date_asc' ? 'selected' : '' }}>
+                                Date: Oldest First
+                            </option>
+                            <option value="likes_desc" {{ request('sort') == 'likes_desc' ? 'selected' : '' }}>
+                                Likes: Most First
+                            </option>
+                            <option value="likes_asc" {{ request('sort') == 'likes_asc' ? 'selected' : '' }}>
+                                Likes: Least First
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">
+                        Apply Filters
+                    </button>
+                    <a href="{{ route('users.show', $user->id) }}" class="btn btn-secondary">
+                        Clear
+                    </a>
+                </div>
+
+                <!-- Active Filters Display -->
+                @if(request()->hasAny(['tag', 'sort']))
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+                        <strong style="font-size: 14px;">Active:</strong>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                            @if(request('tag'))
+                                <span style="background-color: #6f42c1; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
+                                    Tag: #{{ request('tag') }}
+                                </span>
+                            @endif
+                            @if(request('sort') && request('sort') != 'date_desc')
+                                <span style="background-color: #17a2b8; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px;">
+                                    @if(request('sort') == 'date_asc')
+                                        Oldest First
+                                    @elseif(request('sort') == 'likes_desc')
+                                        Most Liked
+                                    @elseif(request('sort') == 'likes_asc')
+                                        Least Liked
+                                    @endif
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </form>
+        </div>
+
+        <!-- Results Count -->
+        <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+            <strong>{{ $tweets->count() }}</strong> yap(s) shown
+            @if(request('tag'))
+                with tag <strong>#{{ request('tag') }}</strong>
+            @endif
+        </div>
+    @endif
+
+    <!-- Tweets List -->
+    @forelse($tweets as $tweet)
         <div class="card tweet-card">
-            <p>{{ $tweet->content }}</p>
+            <!-- Tweet Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="color: #666; font-size: 14px;">
+                    {{ $tweet->created_at->diffForHumans() }}
+                </span>
+                <span style="color: #666; font-size: 14px;">
+                    ❤️ {{ $tweet->likes_count }} {{ $tweet->likes_count == 1 ? 'like' : 'likes' }}
+                </span>
+            </div>
+
+            <!-- Content -->
+            <p style="margin-bottom: 10px;">{{ $tweet->content }}</p>
             
+            <!-- Image -->
             @if($tweet->image)
                 <div style="margin: 10px 0;">
                     <img src="{{ asset('storage/' . $tweet->image) }}" 
@@ -53,23 +155,74 @@
                 </div>
             @endif
 
+            <!-- Tags -->
             @if($tweet->tags->count() > 0)
                 <div style="margin: 10px 0;">
                     @foreach($tweet->tags as $tag)
-                        <span style="background-color: #e0e7ff; color: #4c51bf; padding: 4px 8px; border-radius: 12px; margin-right: 5px; font-size: 12px;">
+                        <a href="{{ route('users.show', ['id' => $user->id, 'tag' => $tag->name]) }}" 
+                           style="background-color: #e0e7ff; color: #4c51bf; padding: 4px 8px; border-radius: 12px; margin-right: 5px; font-size: 12px; text-decoration: none; display: inline-block;">
                             #{{ $tag->name }}
-                        </span>
+                        </a>
                     @endforeach
                 </div>
             @endif
 
-            <div class="tweet-actions">
-                <span>{{ $tweet->created_at->diffForHumans() }}</span>
-                <span>Likes: {{ $tweet->likes_count }}</span>
+            <!-- Action Buttons -->
+            <div class="tweet-actions" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+                @auth
+                    @if(auth()->id() === $tweet->user_id)
+                        <a href="{{ route('tweets.edit', $tweet->id) }}" class="btn-link">Edit</a>
+                        <form action="{{ route('tweets.destroy', $tweet->id) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn-link btn-danger" onclick="return confirm('Are you sure you want to delete this yap?')">Delete</button>
+                        </form>
+                    @endif
+                @endauth
+
+                <a href="{{ route('tweets.show', $tweet->id) }}" class="btn-link">View Details</a>
             </div>
         </div>
     @empty
-        <p>No yaps yet.</p>
+        <div class="card" style="text-align: center; padding: 40px;">
+            <p class="no-tweets">
+                @if(request('tag'))
+                    No yaps found with tag #{{ request('tag') }}. Try a different tag.
+                @else
+                    No yaps yet.
+                @endif
+            </p>
+        </div>
     @endforelse
 </div>
+
+<style>
+    .input-field {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+    .input-field:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    select.input-field {
+        cursor: pointer;
+    }
+
+    .tweet-card {
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
 @endsection

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Tweet;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -13,16 +15,57 @@ class UserController extends Controller
     /**
      * Display the specified user's profile.
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
-        // Find the user by ID with tweets and tags, or fail if not found
-        $user = User::with(['tweets' => function($query) {
-            $query->with('tags')->latest();
-        }])->findOrFail($id);
+        // Find the user by ID
+        $user = User::findOrFail($id);
+
+        // Build query for user's tweets
+        $query = Tweet::where('user_id', $id)->with(['tags', 'likes']);
+
+        // Filter by tag
+        if ($request->filled('tag')) {
+            $tagName = $request->input('tag');
+            $query->whereHas('tags', function($q) use ($tagName) {
+                $q->where('name', $tagName);
+            });
+        }
+
+        // Sort by different criteria
+        $sortBy = $request->input('sort', 'date_desc'); // Default to newest first
+        
+        switch ($sortBy) {
+            case 'date_asc':
+                $query->oldest(); // Oldest first
+                break;
+            case 'date_desc':
+                $query->latest(); // Newest first
+                break;
+            case 'likes_asc':
+                $query->orderBy('likes_count', 'asc'); // Least liked first
+                break;
+            case 'likes_desc':
+                $query->orderBy('likes_count', 'desc'); // Most liked first
+                break;
+            default:
+                $query->latest(); // Default to newest
+        }
+
+        // Get the filtered tweets
+        $tweets = $query->get();
+
+        // Load the relationship for the original user object (for stats)
+        $user->load(['tweets' => function($q) {
+            $q->with('tags');
+        }]);
+
+        // Get all tags used by this user for the filter dropdown
+        $userTags = Tag::whereHas('tweets', function($q) use ($id) {
+            $q->where('user_id', $id);
+        })->orderBy('name')->get();
 
         // Pass user and their tweets to the view
-        // Using 'user' since the view is at resources/views/user.blade.php
-        return view('user', compact('user'));
+        return view('user', compact('user', 'tweets', 'userTags'));
     }
 
     /**

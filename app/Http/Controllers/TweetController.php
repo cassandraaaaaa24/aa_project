@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Tweet;
 use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -19,16 +20,54 @@ class TweetController extends Controller
     }
 
     /**
-     * Display a listing of tweets.
+     * Display a listing of tweets with search and filtering.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tweets = Tweet::with(['user', 'tags', 'likes'])
-            ->select('id', 'user_id', 'content', 'likes_count', 'image', 'created_at', 'updated_at')
-            ->latest()
-            ->get();
+        // Start building the query
+        $query = Tweet::with(['user', 'tags', 'likes'])
+            ->select('id', 'user_id', 'content', 'likes_count', 'image', 'created_at', 'updated_at');
 
-        return view('tweets.index', compact('tweets'));
+        // Search by content
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where('content', 'like', '%' . $search . '%');
+        }
+
+        // Filter by tag
+        if ($request->filled('tag')) {
+            $tagName = $request->input('tag');
+            $query->whereHas('tags', function($q) use ($tagName) {
+                $q->where('name', $tagName);
+            });
+        }
+
+        // Filter by author
+        if ($request->filled('author')) {
+            $authorName = $request->input('author');
+            $query->whereHas('user', function($q) use ($authorName) {
+                $q->where('name', 'like', '%' . $authorName . '%');
+            });
+        }
+
+        // Sort by date
+        $sortOrder = $request->input('sort', 'desc'); // Default to newest first
+        if ($sortOrder === 'asc') {
+            $query->oldest(); // Oldest first
+        } else {
+            $query->latest(); // Newest first (default)
+        }
+
+        // Get the tweets
+        $tweets = $query->get();
+
+        // Get all tags for the filter dropdown
+        $allTags = Tag::orderBy('name')->get();
+
+        // Get all users for author search suggestions
+        $allUsers = User::select('id', 'name')->orderBy('name')->get();
+
+        return view('tweets.index', compact('tweets', 'allTags', 'allUsers'));
     }
 
     /**
@@ -244,6 +283,7 @@ class TweetController extends Controller
             return redirect()->back()->with('success', 'Tweet liked successfully!');
         }
     }
+
     public function unlike($id)
     {
         $tweet = Tweet::findOrFail($id);
@@ -271,5 +311,4 @@ class TweetController extends Controller
 
         return redirect()->back()->with('success', 'You unliked this tweet.');
     }
-
 }
