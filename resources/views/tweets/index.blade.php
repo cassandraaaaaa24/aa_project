@@ -45,7 +45,7 @@
         <h3 style="margin-bottom: 15px; font-size: 18px; font-weight: bold;">Search & Filter</h3>
         
         <form method="GET" action="{{ route('tweets.index') }}" id="filterForm">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div class="filter-grid">
                 
                 <!-- Search by Content -->
                 <div>
@@ -271,6 +271,8 @@
         border: 1px solid #ced4da;
         border-radius: 4px;
         font-size: 14px;
+        box-sizing: border-box; /* Ensures padding is included in width */
+        max-width: 100%; /* Prevents overflow */
     }
 
     .input-field:focus {
@@ -281,6 +283,24 @@
 
     select.input-field {
         cursor: pointer;
+    }
+
+    /* Textarea styling */
+    .textarea {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+    }
+
+    .textarea:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
 
     /* Feed Tabs Styling */
@@ -304,8 +324,41 @@
         background-color: #f8f9fa;
     }
 
+    /* Fix grid container to prevent overflow */
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .filter-grid > div {
+        min-width: 0; /* Allows grid items to shrink below content size */
+    }
+
+    /* Container and card fixes */
+    .container {
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+        box-sizing: border-box;
+    }
+
+    .card {
+        box-sizing: border-box;
+        overflow: hidden; /* Prevents children from overflowing */
+    }
+
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+
+    .mb-6 {
+        margin-bottom: 2rem;
+    }
+
     @media (max-width: 768px) {
-        .card > form > div[style*="grid"] {
+        .filter-grid {
             grid-template-columns: 1fr !important;
         }
         
