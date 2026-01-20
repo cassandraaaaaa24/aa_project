@@ -32,6 +32,17 @@ The Twitter-like app now includes comprehensive profile management and content e
 - Tags display as styled badges below tweet images
 - Tags can be edited along with tweet content
 
+### 5. **User Follow System**
+- Users can follow other users through profiles
+- Following users allows use of a separate Feed for followed users
+- Users can unfollow other users
+- Stored in `follows` table
+
+### 6. **Tweet Comments System**
+- Users can comment on posts
+- Comments can either be deleted by the original commenter or the original poster
+- Stored in `comments` table
+
 ## Database Changes
 
 ### New Tables

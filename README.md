@@ -8,8 +8,11 @@ A Laravel web application built with Laravel 12, MySQL/SQLite, and Blade templat
 - Create, read, update, and delete tweets
 - Like/unlike tweets with like counter
 - User profiles with their tweets
+- Customizable user profiles with profile pictures and bios
 - Responsive design with Blade templates
 - Database-backed session storage
+- Users can follow and curate their feed
+- Comments that can be removed by either the original commenter or the author of the post
 
 ## Requirements
 
