@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\DB;
     @auth
         @if(auth()->id() === $user->id)
             <!-- Edit Profile Button (for own profile) -->
-            <a href="{{ route('profile.edit') }}" class="btn btn-primary" style="margin: 10px 0;">Edit Profile</a>
+            <a href="{{ route('profile.edit') }}" class="btn btn-primary" style="display: inline-block; margin: 15px 0 20px 0; padding: 10px 24px; text-decoration: none;">Edit Profile</a>
         @else
             <!-- Follow/Unfollow Button (for other users) -->
             @php
@@ -47,16 +47,16 @@ use Illuminate\Support\Facades\DB;
             @endphp
 
             @if($isFollowing)
-                <form action="{{ route('users.unfollow', $user->id) }}" method="POST" style="display: inline-block; margin: 10px 0;">
+                <form action="{{ route('users.unfollow', $user->id) }}" method="POST" style="margin: 15px 0 20px 0;">
                     @csrf
-                    <button type="submit" class="btn btn-secondary" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    <button type="submit" class="btn btn-secondary" style="padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
                         ✓ Following
                     </button>
                 </form>
             @else
-                <form action="{{ route('users.follow', $user->id) }}" method="POST" style="display: inline-block; margin: 10px 0;">
+                <form action="{{ route('users.follow', $user->id) }}" method="POST" style="margin: 15px 0 20px 0;">
                     @csrf
-                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;">
                         + Follow
                     </button>
                 </form>
@@ -65,22 +65,35 @@ use Illuminate\Support\Facades\DB;
     @endauth
         
     <!-- Stats -->
-    <div class="profile-stats">
-        <span>Total Yaps: {{ $user->tweets->count() }}</span>
-        <span>Total Likes: {{ $user->tweets->sum('likes_count') }}</span>
-        @php
-            // Get follower/following counts safely
-            $followersCount = 0;
-            $followingCount = 0;
-            try {
-                $followersCount = DB::table('follows')->where('following_id', $user->id)->count();
-                $followingCount = DB::table('follows')->where('follower_id', $user->id)->count();
-            } catch (\Exception $e) {
-                // follows table doesn't exist yet
-            }
-        @endphp
-        <span>Followers: {{ $followersCount }}</span>
-        <span>Following: {{ $followingCount }}</span>
+    @php
+        // Get follower/following counts safely
+        $followersCount = 0;
+        $followingCount = 0;
+        try {
+            $followersCount = DB::table('follows')->where('following_id', $user->id)->count();
+            $followingCount = DB::table('follows')->where('follower_id', $user->id)->count();
+        } catch (\Exception $e) {
+            // follows table doesn't exist yet
+        }
+    @endphp
+    
+    <div class="profile-stats" style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; padding-top: 20px; border-top: 2px solid #e1e8ed;">
+        <div style="text-align: center; min-width: 80px;">
+            <strong style="display: block; font-size: 22px; font-weight: bold; color: #1da1f2; margin-bottom: 4px;">{{ $user->tweets->count() }}</strong>
+            <span style="color: #657786; font-size: 14px; font-weight: 600;">Yaps</span>
+        </div>
+        <div style="text-align: center; min-width: 80px;">
+            <strong style="display: block; font-size: 22px; font-weight: bold; color: #1da1f2; margin-bottom: 4px;">{{ $user->tweets->sum('likes_count') }}</strong>
+            <span style="color: #657786; font-size: 14px; font-weight: 600;">Likes</span>
+        </div>
+        <div style="text-align: center; min-width: 80px;">
+            <strong style="display: block; font-size: 22px; font-weight: bold; color: #1da1f2; margin-bottom: 4px;">{{ $followersCount }}</strong>
+            <span style="color: #657786; font-size: 14px; font-weight: 600;">Followers</span>
+        </div>
+        <div style="text-align: center; min-width: 80px;">
+            <strong style="display: block; font-size: 22px; font-weight: bold; color: #1da1f2; margin-bottom: 4px;">{{ $followingCount }}</strong>
+            <span style="color: #657786; font-size: 14px; font-weight: 600;">Following</span>
+        </div>
     </div>
 </div>
 
