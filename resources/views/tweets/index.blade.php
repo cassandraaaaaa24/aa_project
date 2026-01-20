@@ -166,14 +166,14 @@
                 <input type="text" name="tags" placeholder="Tags (comma-separated)" class="input-field">
             </div>
             
-            <button type="submit" class="btn btn-primary">Tweet</button>
+            <button type="submit" class="btn btn-primary">Post</button>
         </form>
     </div>
     @endauth
 
     <!-- Results Count -->
     <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-        <strong>{{ $tweets->count() }}</strong> tweet(s) found
+        <strong>{{ $tweets->count() }}</strong> yaps(s) found
     </div>
 
     <!-- Tweets List -->
